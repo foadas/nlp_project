@@ -1,4 +1,6 @@
 import os
+import nltk
+from nltk.stem import PorterStemmer
 
 
 def read_file(path):
@@ -45,6 +47,15 @@ def count_of_words(text):
     write_file('count', token_count)
 
 
+def stemming(text):
+    tokens = tokenizer(text)
+    stemmer = PorterStemmer()
+    stemmed_tokens = {}
+    for item in tokens:
+        stemmed_tokens[item] = stemmer.stem(item)
+    write_file('stemming', stemmed_tokens)
+
+
 if __name__ == '__main__':
     print('1.preprocessing', '\n2.spell correction, \n3.text classification')
     base_menu = input()
@@ -60,3 +71,5 @@ if __name__ == '__main__':
             print(text.lower())
         elif menu1 == '3':
             count_of_words(text)
+        elif menu1 == '4':
+            stemming(text)

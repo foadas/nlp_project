@@ -1,18 +1,35 @@
 import os
-import nltk
 from nltk.stem import PorterStemmer
+
+project_dir = os.getcwd()
 
 
 def read_file(path):
-    project_dir = os.getcwd()
     path = os.path.join(project_dir, path)
     with open(path, 'r', encoding='utf-8-sig') as file:
         file_contents = file.read()
     return file_contents
 
 
+def read_lines(path):
+    path = os.path.join(project_dir, path)
+    with open(path, 'r', encoding='utf-8-sig') as file:
+        lines = file.readlines()
+    return lines
+
+
+def spell_errors(path):
+    data = read_lines(path)
+    spell_errors = {}
+    for line in data:
+        line = line.strip()
+        word, errors = line.split(':')
+        errors_array = [v.strip() for v in errors.split(',')]
+        spell_errors[word] = errors_array
+    return spell_errors
+
+
 def write_file(file_name, data):
-    project_dir = os.getcwd()
     path = os.path.join(project_dir, f'files/TextProcessing/output/{file_name}')
     data_type = type(data)
     with open(path, 'w') as file:
@@ -56,6 +73,23 @@ def stemming(text):
     write_file('stemming', stemmed_tokens)
 
 
+def spell_correction():
+    words = read_file('files/SpellCorrection/test/spell-testset.txt').split()
+    errors = spell_errors('files/SpellCorrection/spell-errors.txt')
+    candidates = {}
+    for word in words:
+        candidates_array = []
+        for key, values in errors.items():
+            if key == word:
+                candidates_array.append(word)
+            for value in values:
+                if value == word:
+                    candidates_array.append(key)
+                    break
+            candidates[word] = candidates_array
+    #print(candidates)
+
+
 if __name__ == '__main__':
     print('1.preprocessing', '\n2.spell correction, \n3.text classification')
     base_menu = input()
@@ -73,3 +107,7 @@ if __name__ == '__main__':
             count_of_words(text)
         elif menu1 == '4':
             stemming(text)
+    if base_menu == '2':
+        menu2 = input()
+        if menu2 == '1':
+            spell_correction()

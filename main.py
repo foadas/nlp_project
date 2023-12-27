@@ -1,4 +1,6 @@
+import json
 import os
+
 from nltk.stem import PorterStemmer
 
 project_dir = os.getcwd()
@@ -139,19 +141,19 @@ def min_edit_distance(word1, word2):
 
     while i > 0 or j > 0:
         operation = operations[i][j]
-        print(i, j, operation)
+        # print(i, j, operation)
         if operation == "D":
             if i - 2 >= 0:
-                changes["insert"] = f'{word1[i - 2]}{word1[i-1]}|{word1[i - 2]}'
+                changes["insert"] = f'{word1[i - 2]}{word1[i - 1]}|{word1[i - 2]}'
             else:
-                changes["insert"] = f'{word1[i-1]}{word1[i]}|{word1[i]}'
+                changes["insert"] = f'{word1[i - 1]}|#{word1[i]}'
             # .append(f"Delete '{word1[i - 1]}' at position {i}")
             i -= 1
         elif operation == "I":
             if (i - 1 >= 0):
-                changes["delete"] = f'{word1[i - 1]}|{word2[i - 1]+ word2[j - 1]}'
+                changes["delete"] = f'{word1[i - 1]}|{word2[i - 1] + word2[j - 1]}'
             else:
-                changes["delete"] = f'{word1[i - 1]}|{word2[j - 1]+word2[j]}'
+                changes["delete"] = f'{word1[i - 1]}|{word2[j - 1] + word2[j]}'
 
             # changes.append(f"Insert '{word2[j - 1]}' at position {i + 1}")
             j -= 1
@@ -170,8 +172,43 @@ def min_edit_distance(word1, word2):
             j -= 1
 
     # The minimum edit distance is stored in the bottom-right cell of the matrix
-    print(changes)
-    return dp[len_word1][len_word2]
+    return changes
+
+
+def channel_model(xw):
+    dataset = read_file('files/SpellCorrection/test/Dictionary/Dataset.data').split(' ')
+
+    if 'delete' in xw:
+
+        w = xw['delete'].split('|')[1]
+        matrix = read_file('files/SpellCorrection/test/Confusion Matrix/del-confusion.data').replace("'", '"')
+        matrix = json.loads(matrix)
+        matrix_value = matrix[w]
+        count = 1
+        # print(dataset)
+        # dataset = ['technologies', 'esssss', 'fffesee', 'example', 'yes', 'guess']
+        for word in dataset:
+            count += word.count(w)
+        print(count)
+    elif 'insert' in xw:
+
+        w = xw['insert'].split('|')[1]
+        x = xw['insert'].split('|')[0]
+        matrix = read_file('files/SpellCorrection/test/Confusion Matrix/ins-confusion.data').replace("'", '"')
+        matrix = json.loads(matrix)
+        count = 1
+        print(x,w)
+        if len(w) > 1:
+            matrix_value = matrix[f'{w[0]+x}']
+            for word in dataset:
+                count += word.startswith('c')
+            print(count)
+            print(matrix_value)
+        else:
+            matrix_value = matrix[f'{w+x[1]}']
+            for word in dataset:
+                count += word.count(w)
+    return '{:.18f}'.format(matrix_value / count)
 
 
 if __name__ == '__main__':
@@ -194,4 +231,6 @@ if __name__ == '__main__':
     if base_menu == '2':
         menu2 = input()
         if menu2 == '1':
-            print(min_edit_distance('repair','repaira'))
+            # print(min_edit_distance('acress','acres'))
+            x = channel_model(min_edit_distance('acress', 'cress'))
+            print(x)

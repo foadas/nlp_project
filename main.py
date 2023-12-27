@@ -84,10 +84,90 @@ def spell_correction():
                 candidates_array.append(word)
             for value in values:
                 if value == word:
-                    candidates_array.append(key)
-                    break
+                    if min_edit_distance(key, word) <= 1:
+                        candidates_array.append(key)
+                        break
             candidates[word] = candidates_array
-    #print(candidates)
+    print(candidates)
+
+
+def min_edit_distance(word1, word2):
+    # truning 1 to 2
+    len_word1 = len(word1)
+    len_word2 = len(word2)
+
+    # Initialize a matrix to store the minimum edit distances
+    dp = [[0] * (len_word2 + 1) for _ in range(len_word1 + 1)]
+    operations = [[""] * (len_word2 + 1) for _ in range(len_word1 + 1)]
+
+    # Initialize the first row and column
+    for i in range(len_word1 + 1):
+        dp[i][0] = i
+        operations[i][0] = 'D'
+    for j in range(len_word2 + 1):
+        dp[0][j] = j
+        operations[0][j] = 'I'
+
+    # Fill in the matrix based on minimum edit distances
+    for i in range(1, len_word1 + 1):
+        for j in range(1, len_word2 + 1):
+            # Set uniform cost of 1 for all operations
+            cost = 1
+            dp[i][j] = min(
+                dp[i - 1][j] + cost,  # Deletion
+                dp[i][j - 1] + cost,  # Insertion
+                dp[i - 1][j - 1] + (0 if word1[i - 1] == word2[j - 1] else cost)  # Substitution
+            )
+            if i > 1 and j > 1 and word1[i - 1] == word2[j - 2] and word1[i - 2] == word2[j - 1]:
+                dp[i][j] = min(dp[i][j], dp[i - 2][j - 2] + cost)
+
+            # print(i,j,dp[i][j])
+            if dp[i][j] == dp[i - 1][j] + cost:
+                operations[i][j] = "D"  # Deletion
+            elif dp[i][j] == dp[i][j - 1] + cost:
+                operations[i][j] = "I"  # Insertion
+            elif dp[i][j] == dp[i - 1][j - 1] + (0 if word1[i - 1] == word2[j - 1] else cost):
+                operations[i][j] = "S" if word1[i - 1] != word2[j - 1] else ""  # Substitution
+
+            if i > 1 and j > 1 and word1[i - 1] == word2[j - 2] and word1[i - 2] == word2[j - 1]:
+                dp[i][j] = min(dp[i][j], dp[i - 2][j - 2] + cost)
+                if dp[i][j] == dp[i - 2][j - 2] + cost:
+                    operations[i][j] = "T"
+            # print(i,j,operations[i][j])
+    i, j = len_word1, len_word2
+    changes = {}
+
+    while i > 0 or j > 0:
+        operation = operations[i][j]
+        print(i, j, operation)
+        if operation == "D":
+            changes["delete"] = f'{word1[i - 1]}|#'
+            # .append(f"Delete '{word1[i - 1]}' at position {i}")
+            i -= 1
+        elif operation == "I":
+            if (i - 1 >= 0):
+                changes["insert"] = f'{word1[i - 1]}|{word2[i - 1], word2[j - 1]}'
+            else:   changes["insert"] = f'#|#{word2[j - 1]}'
+
+            # changes.append(f"Insert '{word2[j - 1]}' at position {i + 1}")
+            j -= 1
+        elif operation == "S":
+            changes["sub"] = f'{word1[i - 1]}|{word2[i - 1]}'
+            # changes.append(f"Replace '{word1[i - 1]}' with '{word2[j - 1]}' at position {i}")
+            i -= 1
+            j -= 1
+        elif operation == "T":
+            changes["trans"] = f'{word1[i-2:i]}|{word2[j-2:j]}'
+           # changes.append(f"Transpose '{word1[i - 2:i]}' with '{word2[j - 2:j]}' at positions {i - 1} and {i}")
+            i -= 2
+            j -= 2
+        else:
+            i -= 1
+            j -= 1
+
+    # The minimum edit distance is stored in the bottom-right cell of the matrix
+    print(changes)
+    return dp[len_word1][len_word2]
 
 
 if __name__ == '__main__':
@@ -110,4 +190,4 @@ if __name__ == '__main__':
     if base_menu == '2':
         menu2 = input()
         if menu2 == '1':
-            spell_correction()
+            print(min_edit_distance('acress', 'actress'))

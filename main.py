@@ -141,13 +141,17 @@ def min_edit_distance(word1, word2):
         operation = operations[i][j]
         print(i, j, operation)
         if operation == "D":
-            changes["delete"] = f'{word1[i - 1]}|#'
+            if i - 2 >= 0:
+                changes["insert"] = f'{word1[i - 2]}{word1[i-1]}|{word1[i - 2]}'
+            else:
+                changes["insert"] = f'{word1[i-1]}{word1[i]}|{word1[i]}'
             # .append(f"Delete '{word1[i - 1]}' at position {i}")
             i -= 1
         elif operation == "I":
             if (i - 1 >= 0):
-                changes["insert"] = f'{word1[i - 1]}|{word2[i - 1], word2[j - 1]}'
-            else:   changes["insert"] = f'#|#{word2[j - 1]}'
+                changes["delete"] = f'{word1[i - 1]}|{word2[i - 1]+ word2[j - 1]}'
+            else:
+                changes["delete"] = f'{word1[i - 1]}|{word2[j - 1]+word2[j]}'
 
             # changes.append(f"Insert '{word2[j - 1]}' at position {i + 1}")
             j -= 1
@@ -157,8 +161,8 @@ def min_edit_distance(word1, word2):
             i -= 1
             j -= 1
         elif operation == "T":
-            changes["trans"] = f'{word1[i-2:i]}|{word2[j-2:j]}'
-           # changes.append(f"Transpose '{word1[i - 2:i]}' with '{word2[j - 2:j]}' at positions {i - 1} and {i}")
+            changes["trans"] = f'{word1[i - 2:i]}|{word2[j - 2:j]}'
+            # changes.append(f"Transpose '{word1[i - 2:i]}' with '{word2[j - 2:j]}' at positions {i - 1} and {i}")
             i -= 2
             j -= 2
         else:
@@ -190,4 +194,4 @@ if __name__ == '__main__':
     if base_menu == '2':
         menu2 = input()
         if menu2 == '1':
-            print(min_edit_distance('acress', 'actress'))
+            print(min_edit_distance('repair','repaira'))

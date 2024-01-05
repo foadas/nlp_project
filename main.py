@@ -197,18 +197,50 @@ def channel_model(xw):
         matrix = read_file('files/SpellCorrection/test/Confusion Matrix/ins-confusion.data').replace("'", '"')
         matrix = json.loads(matrix)
         count = 1
-        print(x,w)
+        print(x, w)
         if len(w) > 1:
-            matrix_value = matrix[f'{w[0]+x}']
+            matrix_value = matrix[f'{w[0] + x}']
             for word in dataset:
                 count += word.startswith('c')
             print(count)
             print(matrix_value)
         else:
-            matrix_value = matrix[f'{w+x[1]}']
+            matrix_value = matrix[f'{w + x[1]}']
             for word in dataset:
                 count += word.count(w)
     return '{:.18f}'.format(matrix_value / count)
+
+
+def classification_dictionary():
+    classes = ['Comp.graphics', 'rec.autos', 'sci.electronics', 'soc.religion.christian', 'talk.politics.mideast']
+    words = set()
+    class_words = {}
+    count = 0
+    count_all = 0
+    for directory in classes:
+        path = os.path.join(project_dir, f'files/Classification-Train And Test/{directory}')
+        files_list = os.listdir(path)
+        for file in files_list:
+            if file.endswith('.txt'):
+                with open(os.path.join(path, file), 'r') as txt_file:
+                    count += 1
+                    count_all += 1;
+                    txt = txt_file.read().split()
+                    words.update(txt)
+        class_words[directory] = count
+        count = 0
+    dictionary_path = os.path.join(project_dir, 'files/Classification-Train And Test/dictionary.txt')
+    with open(dictionary_path, 'w') as dictionary_file:
+        dictionary_file.write('\n'.join(words))
+        dictionary_file.write(f'\n{len(words)}')
+    #print(count_all)
+    for key, value in class_words.items():
+        class_words[key] = value / count_all
+
+    prob_path = os.path.join(project_dir, 'files/Classification-Train And Test/classes_prob.txt')
+    json_data = json.dumps(class_words, indent=2)
+    with open(prob_path, 'w') as prob_file:
+        prob_file.write(json_data)
 
 
 if __name__ == '__main__':
@@ -234,3 +266,5 @@ if __name__ == '__main__':
             # print(min_edit_distance('acress','acres'))
             x = channel_model(min_edit_distance('acress', 'cress'))
             print(x)
+    if base_menu == '3':
+        classification_dictionary()

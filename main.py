@@ -143,17 +143,23 @@ def min_edit_distance(word1, word2):
         operation = operations[i][j]
         # print(i, j, operation)
         if operation == "D":
-            if i - 2 >= 0:
-                changes["insert"] = f'{word1[i - 2]}{word1[i - 1]}|{word1[i - 2]}'
+            if i != 1:
+                print(i)
+                changes["insert"] = f'{word1[i - 2]}|{word1[i - 1]}'
             else:
-                changes["insert"] = f'{word1[i - 1]}|#{word1[i]}'
+                print(i)
+                print(word1)
+                changes["insert"] = f'{word1[i - 1]}|{word1[i]}'
             # .append(f"Delete '{word1[i - 1]}' at position {i}")
             i -= 1
         elif operation == "I":
-            if (i - 1 >= 0):
-                changes["delete"] = f'{word1[i - 1]}|{word2[i - 1] + word2[j - 1]}'
+            if j != 1:
+                changes["delete"] = f'{word2[j -2]}|{word2[j - 1]}'
+                print(j)
             else:
-                changes["delete"] = f'{word1[i - 1]}|{word2[j - 1] + word2[j]}'
+
+               # print(j)
+                changes["delete"] = f'{word2[j]}|{word2[j-1]}'
 
             # changes.append(f"Insert '{word2[j - 1]}' at position {i + 1}")
             j -= 1
@@ -163,7 +169,7 @@ def min_edit_distance(word1, word2):
             i -= 1
             j -= 1
         elif operation == "T":
-            changes["trans"] = f'{word1[i - 2:i]}|{word2[j - 2:j]}'
+            changes["trans"] = f'{word1[i - 2:i]}'
             # changes.append(f"Transpose '{word1[i - 2:i]}' with '{word2[j - 2:j]}' at positions {i - 1} and {i}")
             i -= 2
             j -= 2
@@ -242,6 +248,23 @@ def classification_dictionary():
     with open(prob_path, 'w') as prob_file:
         prob_file.write(json_data)
 
+    ###############################
+
+    for test_dir in classes:
+        path = os.path.join(project_dir, f'files/Classification-Train And Test/{test_dir}/test')
+        files_list = os.listdir(path)
+        for file in files_list:
+            words = file.split()
+            for word in words:
+                pass
+
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
     print('1.preprocessing', '\n2.spell correction, \n3.text classification')
@@ -264,7 +287,7 @@ if __name__ == '__main__':
         menu2 = input()
         if menu2 == '1':
             # print(min_edit_distance('acress','acres'))
-            x = channel_model(min_edit_distance('acress', 'cress'))
+            x = min_edit_distance('acress', 'acress')
             print(x)
     if base_menu == '3':
         classification_dictionary()

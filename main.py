@@ -149,17 +149,17 @@ def min_edit_distance(word1, word2):
             else:
                 print(i)
                 print(word1)
-                changes["insert"] = f'{word1[i - 1]}|{word1[i]}'
+                changes["insert"] = f'{word1[i]}|{word1[i - 1]}'
             # .append(f"Delete '{word1[i - 1]}' at position {i}")
             i -= 1
         elif operation == "I":
             if j != 1:
-                changes["delete"] = f'{word2[j -2]}|{word2[j - 1]}'
+                changes["delete"] = f'{word2[j - 2]}|{word2[j - 1]}'
                 print(j)
             else:
 
-               # print(j)
-                changes["delete"] = f'{word2[j]}|{word2[j-1]}'
+                # print(j)
+                changes["delete"] = f'{word2[j]}|{word2[j - 1]}'
 
             # changes.append(f"Insert '{word2[j - 1]}' at position {i + 1}")
             j -= 1
@@ -187,15 +187,18 @@ def channel_model(xw):
     if 'delete' in xw:
 
         w = xw['delete'].split('|')[1]
+        x = xw['delete'].split('|')[0]
         matrix = read_file('files/SpellCorrection/test/Confusion Matrix/del-confusion.data').replace("'", '"')
         matrix = json.loads(matrix)
-        matrix_value = matrix[w]
+        matrix_value = matrix[f'{x + w}']
         count = 1
         # print(dataset)
         # dataset = ['technologies', 'esssss', 'fffesee', 'example', 'yes', 'guess']
         for word in dataset:
             count += word.count(w)
         print(count)
+        print(matrix_value)
+
     elif 'insert' in xw:
 
         w = xw['insert'].split('|')[1]
@@ -204,16 +207,38 @@ def channel_model(xw):
         matrix = json.loads(matrix)
         count = 1
         print(x, w)
-        if len(w) > 1:
-            matrix_value = matrix[f'{w[0] + x}']
-            for word in dataset:
-                count += word.startswith('c')
-            print(count)
-            print(matrix_value)
-        else:
-            matrix_value = matrix[f'{w + x[1]}']
-            for word in dataset:
-                count += word.count(w)
+        matrix_value = matrix[f'{x + w}']
+        for word in dataset:
+            count += word.count(f'{x}')
+        print(count)
+        print(matrix_value)
+
+    elif 'trans' in xw:
+
+        w = xw['trans'][1]
+        x = xw['trans'][0]
+        matrix = read_file('files/SpellCorrection/test/Confusion Matrix/Transposition-confusion.data').replace("'", '"')
+        matrix = json.loads(matrix)
+        matrix_value = matrix[f'{x + w}']
+        count = 1
+        for word in dataset:
+            count += word.count(f'{x + w}')
+        print(count)
+        print(matrix_value)
+
+    elif 'sub' in xw:
+
+        w = xw['sub'].split('|')[1]
+        x = xw['sub'].split('|')[0]
+        matrix = read_file('files/SpellCorrection/test/Confusion Matrix/sub-confusion.data').replace("'", '"')
+        matrix = json.loads(matrix)
+        matrix_value = matrix[f'{x + w}']
+        count = 1
+        for word in dataset:
+            count += word.count(f'{w}')
+        print(count)
+        print(matrix_value)
+
     return '{:.18f}'.format(matrix_value / count)
 
 
@@ -239,7 +264,7 @@ def classification_dictionary():
     with open(dictionary_path, 'w') as dictionary_file:
         dictionary_file.write('\n'.join(words))
         dictionary_file.write(f'\n{len(words)}')
-    #print(count_all)
+    # print(count_all)
     for key, value in class_words.items():
         class_words[key] = value / count_all
 
@@ -257,13 +282,6 @@ def classification_dictionary():
             words = file.split()
             for word in words:
                 pass
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
@@ -287,7 +305,8 @@ if __name__ == '__main__':
         menu2 = input()
         if menu2 == '1':
             # print(min_edit_distance('acress','acres'))
-            x = min_edit_distance('acress', 'acress')
+            x = min_edit_distance('acress', 'acerss')
             print(x)
+            channel_model(x)
     if base_menu == '3':
         classification_dictionary()

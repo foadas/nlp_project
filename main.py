@@ -1,8 +1,7 @@
 import json
 import os
-
 from nltk.stem import PorterStemmer
-
+import enchant
 project_dir = os.getcwd()
 
 
@@ -304,6 +303,15 @@ if __name__ == '__main__':
     if base_menu == '2':
         menu2 = input()
         if menu2 == '1':
+
+            path = '/usr/share/hunspell/'
+            broker = enchant.Broker()
+            print(broker.describe())
+            print(broker.list_languages())
+            #enchant.set_param('enchant.hunspell.dictionary.path', path)
+            print("The dict is", enchant.get_default_language())
+            d = enchant.Dict("en_US")
+            d.check("enchant")
             # print(min_edit_distance('acress','acres'))
             x = min_edit_distance('acress', 'acerss')
             print(x)

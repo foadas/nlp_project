@@ -1,7 +1,10 @@
 import json
+import math
 import os
 from nltk.stem import PorterStemmer
 import enchant
+import numpy as np
+
 project_dir = os.getcwd()
 
 
@@ -243,44 +246,98 @@ def channel_model(xw):
 
 def classification_dictionary():
     classes = ['Comp.graphics', 'rec.autos', 'sci.electronics', 'soc.religion.christian', 'talk.politics.mideast']
-    words = set()
+    words_list = set()
+    class_number = {}
+    class_size = {}
     class_words = {}
     count = 0
     count_all = 0
     for directory in classes:
         path = os.path.join(project_dir, f'files/Classification-Train And Test/{directory}')
         files_list = os.listdir(path)
+        class_size[directory] = 0
+        class_words[directory] = []
         for file in files_list:
             if file.endswith('.txt'):
                 with open(os.path.join(path, file), 'r') as txt_file:
                     count += 1
-                    count_all += 1;
+                    count_all += 1
                     txt = txt_file.read().split()
-                    words.update(txt)
-        class_words[directory] = count
+                    class_size[directory] = class_size[directory] + len(txt)
+                    class_words[directory] += txt
+                    words_list.update(txt)
+
+        class_number[directory] = count
         count = 0
     dictionary_path = os.path.join(project_dir, 'files/Classification-Train And Test/dictionary.txt')
     with open(dictionary_path, 'w') as dictionary_file:
-        dictionary_file.write('\n'.join(words))
-        dictionary_file.write(f'\n{len(words)}')
+        dictionary_file.write('\n'.join(words_list))
+        dictionary_file.write(f'\n{len(words_list)}')
     # print(count_all)
-    for key, value in class_words.items():
-        class_words[key] = value / count_all
+    for key, value in class_number.items():
+        class_number[key] = value / count_all
 
     prob_path = os.path.join(project_dir, 'files/Classification-Train And Test/classes_prob.txt')
-    json_data = json.dumps(class_words, indent=2)
+    json_data = json.dumps(class_number, indent=2)
     with open(prob_path, 'w') as prob_file:
         prob_file.write(json_data)
 
-    ###############################
+    for key, value in class_words.items():
+        result = os.path.join(project_dir, f'files/Classification-Train And Test/{key}.txt')
+        json_data = json.dumps(value, indent=2)
+        with open(result, 'w') as prob_file:
+            prob_file.write(json_data)
 
+    ###############################
+    # print(class_words)
+    # CLASS PROBS = CLASS_NUMBER[class_name]
+    # DIC = WORDS
+    # LEN_DIC = LEN(WORDS)
+    # LEN_ CLASS = CLASS_SIZE[CLASS_NAME]
+    classification = {}
+    v = len(words_list)
     for test_dir in classes:
         path = os.path.join(project_dir, f'files/Classification-Train And Test/{test_dir}/test')
         files_list = os.listdir(path)
         for file in files_list:
-            words = file.split()
-            for word in words:
-                pass
+            file_class = {}
+            with open(os.path.join(path, file), 'r') as txt_file:
+                txt = txt_file.read()
+                words_of_class = txt.split()
+            for selected_class in classes:
+                prob = np.log(class_number[selected_class])
+                count_class = class_size[selected_class]
+                for word in words_of_class:
+                    if word not in words_list:
+                        non_word = 1
+                    else:
+                        non_word = 0
+
+                    count_in_class = 1
+                    for w in class_words[selected_class]:
+                        if w == word:
+                            count_in_class += 1
+                    # count_in_class = sum(w.count(word) for w in class_words[selected_class])
+                    prob = prob + np.log((count_in_class / (count_class + v + non_word)))
+                file_class[selected_class] = prob
+                if file == 'data6993.txt':
+                    print(file)
+                    print(selected_class)
+                    print(prob)
+
+            max_value = max(file_class.values())
+            max_class = ''
+            for key, value in file_class.items():
+                if value == max_value:
+                    max_class = key
+                    break
+            classification[file] = {max_class: max_value}
+    # print(classification)
+
+    result = os.path.join(project_dir, 'files/Classification-Train And Test/result.txt')
+    json_data = json.dumps(classification, indent=2)
+    with open(result, 'w') as prob_file:
+        prob_file.write(json_data)
 
 
 if __name__ == '__main__':
@@ -303,15 +360,8 @@ if __name__ == '__main__':
     if base_menu == '2':
         menu2 = input()
         if menu2 == '1':
-
-            path = '/usr/share/hunspell/'
-            broker = enchant.Broker()
-            print(broker.describe())
-            print(broker.list_languages())
-            #enchant.set_param('enchant.hunspell.dictionary.path', path)
-            print("The dict is", enchant.get_default_language())
             d = enchant.Dict("en_US")
-            d.check("enchant")
+            print(d.check("enchant"))
             # print(min_edit_distance('acress','acres'))
             x = min_edit_distance('acress', 'acerss')
             print(x)

@@ -1,0 +1,53 @@
+{
+  "data480.txt": {
+    "Comp.graphics": -2512.5333344980595
+  },
+  "data488.txt": {
+    "rec.autos": -3096.5213277889807
+  },
+  "data3982.txt": {
+    "rec.autos": -2993.075697391448
+  },
+  "data3992.txt": {
+    "rec.autos": -4246.018642666278
+  },
+  "data4011.txt": {
+    "rec.autos": -5172.227746039649
+  },
+  "data6990.txt": {
+    "sci.electronics": -4743.3409052908755
+  },
+  "data6993.txt": {
+    "rec.autos": -3737.4973187150117
+  },
+  "data7016.txt": {
+    "sci.electronics": -3152.3955313304946
+  },
+  "data8750.txt": {
+    "soc.religion.christian": -19784.216576849696
+  },
+  "data8752.txt": {
+    "soc.religion.christian": -3175.0712229040655
+  },
+  "data8762.txt": {
+    "soc.religion.christian": -6070.653852993602
+  },
+  "data8770.txt": {
+    "soc.religion.christian": -7111.843563214364
+  },
+  "data9891.txt": {
+    "talk.politics.mideast": -22276.257115839442
+  },
+  "data9899.txt": {
+    "talk.politics.mideast": -9643.90568608129
+  },
+  "data9905.txt": {
+    "talk.politics.mideast": -11935.864685085095
+  },
+  "data9906.txt": {
+    "talk.politics.mideast": -5345.8370361044335
+  },
+  "data9910.txt": {
+    "talk.politics.mideast": -10035.62381823076
+  }
+}

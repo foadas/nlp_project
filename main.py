@@ -250,6 +250,7 @@ def classification_dictionary():
     class_number = {}
     class_size = {}
     class_words = {}
+    count_of_words_in_class = {}
     count = 0
     count_all = 0
     for directory in classes:
@@ -266,9 +267,17 @@ def classification_dictionary():
                     class_size[directory] = class_size[directory] + len(txt)
                     class_words[directory] += txt
                     words_list.update(txt)
-
         class_number[directory] = count
         count = 0
+    for key, value in class_words.items():
+        word_count = {}
+        for w in value:
+            if w in word_count:
+                word_count[w] += 1
+            else:
+                word_count[w] = 1
+        count_of_words_in_class[key] = word_count
+    #print(count_of_words_in_class)
     dictionary_path = os.path.join(project_dir, 'files/Classification-Train And Test/dictionary.txt')
     with open(dictionary_path, 'w') as dictionary_file:
         dictionary_file.write('\n'.join(words_list))
@@ -295,11 +304,14 @@ def classification_dictionary():
     # LEN_DIC = LEN(WORDS)
     # LEN_ CLASS = CLASS_SIZE[CLASS_NAME]
     classification = {}
+    tests = 0
+    correct_dir = 0
     v = len(words_list)
     for test_dir in classes:
         path = os.path.join(project_dir, f'files/Classification-Train And Test/{test_dir}/test')
         files_list = os.listdir(path)
         for file in files_list:
+            tests += 1
             file_class = {}
             with open(os.path.join(path, file), 'r') as txt_file:
                 txt = txt_file.read()
@@ -308,24 +320,17 @@ def classification_dictionary():
                 prob = np.log(class_number[selected_class])
                 count_class = class_size[selected_class]
                 for word in words_of_class:
-                    if word not in words_list:
-                        non_word = 1
-                    else:
-                        non_word = 0
-
                     count_in_class = 1
-                    for w in class_words[selected_class]:
-                        if w == word:
-                            count_in_class += 1
+                    count_in_class += count_of_words_in_class[selected_class].get(word,0)
                     # count_in_class = sum(w.count(word) for w in class_words[selected_class])
-                    prob = prob + np.log((count_in_class / (count_class + v + non_word)))
-                file_class[selected_class] = prob
-                if file == 'data6993.txt':
-                    print(file)
-                    print(selected_class)
-                    print(prob)
+                    prob = prob + np.log((count_in_class / (count_class + v)))
+                if selected_class == test_dir:
+                    correct = 'yes'
+                else:
+                    correct = 'no'
+                file_class[selected_class] = {'prob': prob, 'correct': correct}
 
-            max_value = max(file_class.values())
+            max_value = max(file_class.values(), key=lambda x: x['prob'])
             max_class = ''
             for key, value in file_class.items():
                 if value == max_value:
@@ -338,6 +343,16 @@ def classification_dictionary():
     json_data = json.dumps(classification, indent=2)
     with open(result, 'w') as prob_file:
         prob_file.write(json_data)
+
+    for correct in classification.values():
+        for c in correct.values():
+            if c.get('correct') == 'yes':
+                correct_dir += 1
+    # accuracy
+    print(correct_dir)
+    print(tests)
+    acc = (correct_dir / tests)
+    print(acc)
 
 
 if __name__ == '__main__':

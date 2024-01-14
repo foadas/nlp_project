@@ -1,7 +1,7 @@
 {
-  "Comp.graphics": 0.09,
-  "rec.autos": 0.16,
-  "sci.electronics": 0.15,
-  "soc.religion.christian": 0.29,
-  "talk.politics.mideast": 0.32
+  "Comp.graphics": 0.0851063829787234,
+  "rec.autos": 0.1595744680851064,
+  "sci.electronics": 0.14893617021276595,
+  "soc.religion.christian": 0.2872340425531915,
+  "talk.politics.mideast": 0.3191489361702128
 }

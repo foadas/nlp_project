@@ -80,19 +80,36 @@ def stemming(text):
 def spell_correction():
     words = read_file('files/SpellCorrection/test/spell-testset.txt').split()
     errors = spell_errors('files/SpellCorrection/spell-errors.txt')
+    dataset = read_file('files/SpellCorrection/test/Dictionary/Dataset.data').split(' ')
     candidates = {}
+    probs = {}
+    punctuation = [' ', "'", '-']
+    d = enchant.Dict("en_US")
     for word in words:
-        candidates_array = []
-        for key, values in errors.items():
-            if key == word:
-                candidates_array.append(word)
-            for value in values:
-                if value == word:
-                    if min_edit_distance(key, word) <= 1:
-                        candidates_array.append(key)
-                        break
-            candidates[word] = candidates_array
-    print(candidates)
+        suggestions = d.suggest(word)
+        filtered_candidates = [candid.lower() for candid in suggestions if
+                               not any(punctuation in candid for punctuation in [' ', '-', "'"])]
+        candidates[word] = filtered_candidates
+    # print(candidates)
+
+    for key, values in candidates.items():
+        max_value = 0
+        for value in values:
+            changes = min_edit_distance(key, value)
+
+            if changes[0] <= 1:
+                if key not in probs:
+                    probs[key] = ''
+                # print('key', key)
+                # print('value', value)
+                channel = channel_model(changes[1], dataset)
+                lang = language_model(value, dataset)
+                current_value = channel*lang*(10**9)
+                if probs[key] == '' or current_value > max_value:
+                    max_value = current_value
+                    probs[key] = value
+
+    write_file('correction_result',probs)
 
 
 def min_edit_distance(word1, word2):
@@ -139,6 +156,9 @@ def min_edit_distance(word1, word2):
                     operations[i][j] = "T"
             # print(i,j,operations[i][j])
     i, j = len_word1, len_word2
+    distance = dp[i][j]
+    if distance > 1:
+        return [2, '']
     changes = {}
 
     while i > 0 or j > 0:
@@ -146,18 +166,14 @@ def min_edit_distance(word1, word2):
         # print(i, j, operation)
         if operation == "D":
             if i != 1:
-                print(i)
                 changes["insert"] = f'{word1[i - 2]}|{word1[i - 1]}'
             else:
-                print(i)
-                print(word1)
                 changes["insert"] = f'{word1[i]}|{word1[i - 1]}'
             # .append(f"Delete '{word1[i - 1]}' at position {i}")
             i -= 1
         elif operation == "I":
             if j != 1:
                 changes["delete"] = f'{word2[j - 2]}|{word2[j - 1]}'
-                print(j)
             else:
 
                 # print(j)
@@ -180,14 +196,11 @@ def min_edit_distance(word1, word2):
             j -= 1
 
     # The minimum edit distance is stored in the bottom-right cell of the matrix
-    return changes
+    return [distance, changes]
 
 
-def channel_model(xw):
-    dataset = read_file('files/SpellCorrection/test/Dictionary/Dataset.data').split(' ')
-
+def channel_model(xw, dataset):
     if 'delete' in xw:
-
         w = xw['delete'].split('|')[1]
         x = xw['delete'].split('|')[0]
         matrix = read_file('files/SpellCorrection/test/Confusion Matrix/del-confusion.data').replace("'", '"')
@@ -197,23 +210,24 @@ def channel_model(xw):
         # print(dataset)
         # dataset = ['technologies', 'esssss', 'fffesee', 'example', 'yes', 'guess']
         for word in dataset:
-            count += word.count(w)
-        print(count)
-        print(matrix_value)
+            count += word.count(f'{x + w}')
+        # print(count)
+        # print(matrix_value)
 
     elif 'insert' in xw:
 
-        w = xw['insert'].split('|')[1]
         x = xw['insert'].split('|')[0]
+        w = xw['insert'].split('|')[1]
         matrix = read_file('files/SpellCorrection/test/Confusion Matrix/ins-confusion.data').replace("'", '"')
         matrix = json.loads(matrix)
         count = 1
-        print(x, w)
+        # print(x, w)
         matrix_value = matrix[f'{x + w}']
+        #print(f'{x}')
         for word in dataset:
             count += word.count(f'{x}')
-        print(count)
-        print(matrix_value)
+        # print(count)
+        # print(matrix_value)
 
     elif 'trans' in xw:
 
@@ -225,8 +239,8 @@ def channel_model(xw):
         count = 1
         for word in dataset:
             count += word.count(f'{x + w}')
-        print(count)
-        print(matrix_value)
+        # print(count)
+        # print(matrix_value)
 
     elif 'sub' in xw:
 
@@ -236,12 +250,28 @@ def channel_model(xw):
         matrix = json.loads(matrix)
         matrix_value = matrix[f'{x + w}']
         count = 1
+        #print(f'{w}')
         for word in dataset:
             count += word.count(f'{w}')
-        print(count)
-        print(matrix_value)
+        # print(count)
+        # print(matrix_value)
+    else:
+        matrix_value = 95
+        count = 100
+    #print(xw)
+    #print(matrix_value)
+    #print(count)
+    #print((matrix_value / count) * 10 ** 9)
 
-    return '{:.18f}'.format(matrix_value / count)
+    return matrix_value / count
+
+
+def language_model(w, dataset):
+    count = 0
+    for word in dataset:
+        if w == word:
+            count += 1
+    return count / len(dataset)
 
 
 def classification_dictionary():
@@ -277,7 +307,7 @@ def classification_dictionary():
             else:
                 word_count[w] = 1
         count_of_words_in_class[key] = word_count
-    #print(count_of_words_in_class)
+    # print(count_of_words_in_class)
     dictionary_path = os.path.join(project_dir, 'files/Classification-Train And Test/dictionary.txt')
     with open(dictionary_path, 'w') as dictionary_file:
         dictionary_file.write('\n'.join(words_list))
@@ -321,7 +351,7 @@ def classification_dictionary():
                 count_class = class_size[selected_class]
                 for word in words_of_class:
                     count_in_class = 1
-                    count_in_class += count_of_words_in_class[selected_class].get(word,0)
+                    count_in_class += count_of_words_in_class[selected_class].get(word, 0)
                     # count_in_class = sum(w.count(word) for w in class_words[selected_class])
                     prob = prob + np.log((count_in_class / (count_class + v)))
                 if selected_class == test_dir:
@@ -375,11 +405,14 @@ if __name__ == '__main__':
     if base_menu == '2':
         menu2 = input()
         if menu2 == '1':
-            d = enchant.Dict("en_US")
-            print(d.check("enchant"))
-            # print(min_edit_distance('acress','acres'))
-            x = min_edit_distance('acress', 'acerss')
-            print(x)
-            channel_model(x)
+             spell_correction()
+
+        # spell_correction()
+        # d = enchant.Dict("en_US")
+        # print(d.check("enchant"))
+        # print(min_edit_distance('acress','acres'))
+        # x = min_edit_distance('acress', 'acerss')
+        # print(x)
+        # channel_model(x)
     if base_menu == '3':
         classification_dictionary()

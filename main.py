@@ -3,8 +3,6 @@ import math
 import os
 from nltk.stem import PorterStemmer
 import enchant
-import numpy as np
-
 project_dir = os.getcwd()
 
 
@@ -109,7 +107,7 @@ def spell_correction():
                     max_value = current_value
                     probs[key] = value
 
-    write_file('correction_result',probs)
+    write_file('correction_result', probs)
 
 
 def min_edit_distance(word1, word2):
@@ -347,13 +345,13 @@ def classification_dictionary():
                 txt = txt_file.read()
                 words_of_class = txt.split()
             for selected_class in classes:
-                prob = np.log(class_number[selected_class])
+                prob = math.log(class_number[selected_class])
                 count_class = class_size[selected_class]
                 for word in words_of_class:
                     count_in_class = 1
                     count_in_class += count_of_words_in_class[selected_class].get(word, 0)
                     # count_in_class = sum(w.count(word) for w in class_words[selected_class])
-                    prob = prob + np.log((count_in_class / (count_class + v)))
+                    prob = prob + math.log((count_in_class / (count_class + v)))
                 if selected_class == test_dir:
                     correct = 'yes'
                 else:

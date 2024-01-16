@@ -37,7 +37,7 @@ def write_file(file_name, data):
     path = os.path.join(project_dir, f'files/TextProcessing/output/{file_name}')
     data_type = type(data)
     with open(path, 'w', encoding='utf-8') as file:
-        if data_type == 'list':
+        if data_type == list:
             for item in data:
                 file.write(str(item) + '\n')
         if data_type == dict:
@@ -54,12 +54,12 @@ def tokenizer(text):
         text = text.replace(mark, f' {mark} ')
 
     tokens = text.split()
+    write_file('tokens', tokens)
     return tokens
 
 
 def count_of_words(text):
     tokens = tokenizer(text)
-    print(tokens)
     token_count = {}
     for item in tokens:
         if item in token_count:

@@ -1,13 +1,13 @@
 {
   "data480.txt": {
     "Comp.graphics": {
-      "prob": -2512.5867746497734,
+      "prob": -2512.5892421299977,
       "correct": "yes"
     }
   },
   "data488.txt": {
     "rec.autos": {
-      "prob": -3096.5229702798647,
+      "prob": -3096.5239909064003,
       "correct": "no"
     }
   },
@@ -19,85 +19,85 @@
   },
   "data3992.txt": {
     "rec.autos": {
-      "prob": -4246.020614391529,
+      "prob": -4246.021305783697,
       "correct": "yes"
     }
   },
   "data4011.txt": {
     "rec.autos": {
-      "prob": -5172.228400827437,
+      "prob": -5172.230409157069,
       "correct": "yes"
     }
   },
   "data6990.txt": {
     "sci.electronics": {
-      "prob": -4743.345865035042,
+      "prob": -4743.348022758644,
       "correct": "yes"
     }
   },
   "data6993.txt": {
     "rec.autos": {
-      "prob": -3737.4983356605985,
+      "prob": -3737.4999818324313,
       "correct": "no"
     }
   },
   "data7016.txt": {
     "sci.electronics": {
-      "prob": -3152.401689809996,
+      "prob": -3152.4026487982637,
       "correct": "yes"
     }
   },
   "data8750.txt": {
     "soc.religion.christian": {
-      "prob": -19784.222662791413,
+      "prob": -19784.226160409962,
       "correct": "yes"
     }
   },
   "data8752.txt": {
     "soc.religion.christian": {
-      "prob": -3175.0800863663953,
+      "prob": -3175.0808064643293,
       "correct": "yes"
     }
   },
   "data8762.txt": {
     "soc.religion.christian": {
-      "prob": -6070.661502576533,
+      "prob": -6070.663436553867,
       "correct": "yes"
     }
   },
   "data8770.txt": {
     "soc.religion.christian": {
-      "prob": -7111.851747727204,
+      "prob": -7111.853146774628,
       "correct": "yes"
     }
   },
   "data9891.txt": {
     "talk.politics.mideast": {
-      "prob": -22276.25833015381,
+      "prob": -22276.25977895686,
       "correct": "yes"
     }
   },
   "data9899.txt": {
     "talk.politics.mideast": {
-      "prob": -9643.908069786712,
+      "prob": -9643.90834919871,
       "correct": "yes"
     }
   },
   "data9905.txt": {
     "talk.politics.mideast": {
-      "prob": -11935.865806262227,
+      "prob": -11935.867348202515,
       "correct": "yes"
     }
   },
   "data9906.txt": {
     "talk.politics.mideast": {
-      "prob": -5345.839078306316,
+      "prob": -5345.839699221853,
       "correct": "yes"
     }
   },
   "data9910.txt": {
     "talk.politics.mideast": {
-      "prob": -10035.626315770702,
+      "prob": -10035.62648134818,
       "correct": "yes"
     }
   }

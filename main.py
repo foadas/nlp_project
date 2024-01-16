@@ -36,7 +36,7 @@ def spell_errors(path):
 def write_file(file_name, data):
     path = os.path.join(project_dir, f'files/TextProcessing/output/{file_name}')
     data_type = type(data)
-    with open(path, 'w') as file:
+    with open(path, 'w', encoding='utf-8') as file:
         if data_type == 'list':
             for item in data:
                 file.write(str(item) + '\n')
@@ -59,6 +59,7 @@ def tokenizer(text):
 
 def count_of_words(text):
     tokens = tokenizer(text)
+    print(tokens)
     token_count = {}
     for item in tokens:
         if item in token_count:
@@ -80,17 +81,17 @@ def stemming(text):
 def spell_correction():
     words = read_file('files/SpellCorrection/test/spell-testset.txt').split()
     errors = spell_errors('files/SpellCorrection/spell-errors.txt')
-    dataset = read_file('files/SpellCorrection/test/Dictionary/Dataset.data').split(' ')
+    dataset = read_file('files/SpellCorrection/test/Dictionary/Dataset.data')
+    counter = Counter(dataset)
     del_matrix = read_file('files/SpellCorrection/test/Confusion Matrix/del-confusion.data').replace("'", '"')
     ins_matrix = read_file('files/SpellCorrection/test/Confusion Matrix/ins-confusion.data').replace("'", '"')
     sub_matrix = read_file('files/SpellCorrection/test/Confusion Matrix/sub-confusion.data').replace("'", '"')
     trans_matrix = read_file('files/SpellCorrection/test/Confusion Matrix/Transposition-confusion.data').replace("'",
                                                                                                                  '"')
-    counter = Counter(dataset)
-
 
     candidates = {}
     probs = {}
+    punctuation = [' ', "'", '-']
     d = enchant.Dict("en_US")
     for word in words:
         suggestions = d.suggest(word)
@@ -110,8 +111,8 @@ def spell_correction():
                     probs[key] = ''
                 # print('key', key)
                 # print('value', value)
-                channel = channel_model(changes[1], dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix, counter)
-                lang = language_model(value, dataset)
+                channel = channel_model(changes[1], dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix)
+                lang = language_model(value, dataset, counter)
                 current_value = channel * lang * (10 ** 9)
                 if probs[key] == '' or current_value > max_value:
                     max_value = current_value
@@ -185,7 +186,6 @@ def min_edit_distance(word1, word2):
             if j != 1:
                 changes["delete"] = f'{word2[j - 2]}|{word2[j - 1]}'
             else:
-
                 # print(j)
                 changes["delete"] = f'{word2[j]}|{word2[j - 1]}'
 
@@ -208,17 +208,17 @@ def min_edit_distance(word1, word2):
     return [distance, changes]
 
 
-def channel_model(xw, dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix, counter):
+def channel_model(xw, dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix):
     if 'delete' in xw:
         w = xw['delete'].split('|')[1]
         x = xw['delete'].split('|')[0]
         matrix = json.loads(del_matrix)
         matrix_value = matrix[f'{x + w}']
-        #count = 1
+        count = 1
         # print(dataset)
         # dataset = ['technologies', 'esssss', 'fffesee', 'example', 'yes', 'guess']
-        count = counter[f'{x + w}'] + 1
-        #print('del', count)
+        count = dataset.count(f'{x + w}') + 1
+        # print('del', count)
         # print(matrix_value)
 
     elif 'insert' in xw:
@@ -226,11 +226,12 @@ def channel_model(xw, dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix,
         x = xw['insert'].split('|')[0]
         w = xw['insert'].split('|')[1]
         matrix = json.loads(ins_matrix)
+        count = 1
         # print(x, w)
         matrix_value = matrix[f'{x + w}']
         # print(f'{x}')
-        count = counter[f'{x}'] + 1
-        #print('in', count)
+        count = dataset.count(f'{x}') + 1
+        # print('in', count)
         # print(count)
         # print(matrix_value)
 
@@ -240,8 +241,9 @@ def channel_model(xw, dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix,
         x = xw['trans'][0]
         matrix = json.loads(trans_matrix)
         matrix_value = matrix[f'{x + w}']
-        count = counter[f'{x + w}'] + 1
-        #print('t', count)
+        count = 1
+        count = dataset.count(f'{x + w}') + 1
+        # print('t', count)
         # print(count)
         # print(matrix_value)
 
@@ -251,9 +253,10 @@ def channel_model(xw, dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix,
         x = xw['sub'].split('|')[0]
         matrix = json.loads(sub_matrix)
         matrix_value = matrix[f'{x + w}']
+        count = 1
         # print(f'{w}')
-        count = counter[f'{w}'] + 1
-        #print('sub',count)
+        count = dataset.count(f'{w}') + 1
+        # print('sub',count)
         # print(matrix_value)
     else:
         matrix_value = 95
@@ -265,11 +268,8 @@ def channel_model(xw, dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix,
     return matrix_value / count
 
 
-def language_model(w, dataset):
-    count = 0
-    for word in dataset:
-        if w == word:
-            count += 1
+def language_model(w, dataset, counter):
+    count = counter[w]
 
     return count / len(dataset)
 
@@ -394,7 +394,7 @@ if __name__ == '__main__':
     base_menu = input()
     if base_menu == '1':
         text = read_file('files/TextProcessing/61085-0.txt')
-        print('1.tokenization', '\n2.lowercase folding, \n3.count of words')
+        print('1.tokenization', '\n2.lowercase folding', '\n3.count of words', '\n4.stemming')
         menu1 = input()
         if menu1 == '1':
             tokens = tokenizer(text)

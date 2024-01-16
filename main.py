@@ -3,6 +3,7 @@ import math
 import os
 from nltk.stem import PorterStemmer
 import enchant
+
 project_dir = os.getcwd()
 
 
@@ -79,6 +80,11 @@ def spell_correction():
     words = read_file('files/SpellCorrection/test/spell-testset.txt').split()
     errors = spell_errors('files/SpellCorrection/spell-errors.txt')
     dataset = read_file('files/SpellCorrection/test/Dictionary/Dataset.data').split(' ')
+    del_matrix = read_file('files/SpellCorrection/test/Confusion Matrix/del-confusion.data').replace("'", '"')
+    ins_matrix = read_file('files/SpellCorrection/test/Confusion Matrix/ins-confusion.data').replace("'", '"')
+    sub_matrix = read_file('files/SpellCorrection/test/Confusion Matrix/sub-confusion.data').replace("'", '"')
+    trans_matrix = read_file('files/SpellCorrection/test/Confusion Matrix/Transposition-confusion.data').replace("'", '"')
+
     candidates = {}
     probs = {}
     punctuation = [' ', "'", '-']
@@ -88,6 +94,7 @@ def spell_correction():
         filtered_candidates = [candid.lower() for candid in suggestions if
                                not any(punctuation in candid for punctuation in [' ', '-', "'"])]
         candidates[word] = filtered_candidates
+        # print(candidates[word])
     # print(candidates)
 
     for key, values in candidates.items():
@@ -100,9 +107,9 @@ def spell_correction():
                     probs[key] = ''
                 # print('key', key)
                 # print('value', value)
-                channel = channel_model(changes[1], dataset)
+                channel = channel_model(changes[1], dataset,del_matrix,ins_matrix,sub_matrix,trans_matrix)
                 lang = language_model(value, dataset)
-                current_value = channel*lang*(10**9)
+                current_value = channel * lang * (10 ** 9)
                 if probs[key] == '' or current_value > max_value:
                     max_value = current_value
                     probs[key] = value
@@ -111,15 +118,15 @@ def spell_correction():
 
 
 def min_edit_distance(word1, word2):
-    # truning 1 to 2
+    # turning 1 to 2
     len_word1 = len(word1)
     len_word2 = len(word2)
 
-    # Initialize a matrix to store the minimum edit distances
     dp = [[0] * (len_word2 + 1) for _ in range(len_word1 + 1)]
+    #print(dp)
     operations = [[""] * (len_word2 + 1) for _ in range(len_word1 + 1)]
+    #print(operations)
 
-    # Initialize the first row and column
     for i in range(len_word1 + 1):
         dp[i][0] = i
         operations[i][0] = 'D'
@@ -127,10 +134,8 @@ def min_edit_distance(word1, word2):
         dp[0][j] = j
         operations[0][j] = 'I'
 
-    # Fill in the matrix based on minimum edit distances
     for i in range(1, len_word1 + 1):
         for j in range(1, len_word2 + 1):
-            # Set uniform cost of 1 for all operations
             cost = 1
             dp[i][j] = min(
                 dp[i - 1][j] + cost,  # Deletion
@@ -193,16 +198,14 @@ def min_edit_distance(word1, word2):
             i -= 1
             j -= 1
 
-    # The minimum edit distance is stored in the bottom-right cell of the matrix
     return [distance, changes]
 
 
-def channel_model(xw, dataset):
+def channel_model(xw, dataset, del_matrix, ins_matrix, sub_matrix, trans_matrix):
     if 'delete' in xw:
         w = xw['delete'].split('|')[1]
         x = xw['delete'].split('|')[0]
-        matrix = read_file('files/SpellCorrection/test/Confusion Matrix/del-confusion.data').replace("'", '"')
-        matrix = json.loads(matrix)
+        matrix = json.loads(del_matrix)
         matrix_value = matrix[f'{x + w}']
         count = 1
         # print(dataset)
@@ -216,12 +219,11 @@ def channel_model(xw, dataset):
 
         x = xw['insert'].split('|')[0]
         w = xw['insert'].split('|')[1]
-        matrix = read_file('files/SpellCorrection/test/Confusion Matrix/ins-confusion.data').replace("'", '"')
-        matrix = json.loads(matrix)
+        matrix = json.loads(ins_matrix)
         count = 1
         # print(x, w)
         matrix_value = matrix[f'{x + w}']
-        #print(f'{x}')
+        # print(f'{x}')
         for word in dataset:
             count += word.count(f'{x}')
         # print(count)
@@ -232,7 +234,7 @@ def channel_model(xw, dataset):
         w = xw['trans'][1]
         x = xw['trans'][0]
         matrix = read_file('files/SpellCorrection/test/Confusion Matrix/Transposition-confusion.data').replace("'", '"')
-        matrix = json.loads(matrix)
+        matrix = json.loads(trans_matrix)
         matrix_value = matrix[f'{x + w}']
         count = 1
         for word in dataset:
@@ -244,11 +246,10 @@ def channel_model(xw, dataset):
 
         w = xw['sub'].split('|')[1]
         x = xw['sub'].split('|')[0]
-        matrix = read_file('files/SpellCorrection/test/Confusion Matrix/sub-confusion.data').replace("'", '"')
-        matrix = json.loads(matrix)
+        matrix = json.loads(sub_matrix)
         matrix_value = matrix[f'{x + w}']
         count = 1
-        #print(f'{w}')
+        # print(f'{w}')
         for word in dataset:
             count += word.count(f'{w}')
         # print(count)
@@ -256,10 +257,10 @@ def channel_model(xw, dataset):
     else:
         matrix_value = 95
         count = 100
-    #print(xw)
-    #print(matrix_value)
-    #print(count)
-    #print((matrix_value / count) * 10 ** 9)
+    # print(xw)
+    # print(matrix_value)
+    # print(count)
+    # print((matrix_value / count) * 10 ** 9)
 
     return matrix_value / count
 
@@ -269,6 +270,7 @@ def language_model(w, dataset):
     for word in dataset:
         if w == word:
             count += 1
+
     return count / len(dataset)
 
 
@@ -405,12 +407,12 @@ if __name__ == '__main__':
         if menu2 == '1':
              spell_correction()
 
-        # spell_correction()
-        # d = enchant.Dict("en_US")
-        # print(d.check("enchant"))
-        # print(min_edit_distance('acress','acres'))
-        # x = min_edit_distance('acress', 'acerss')
-        # print(x)
+            # spell_correction()
+            # d = enchant.Dict("en_US")
+            # print(d.check("enchant"))
+            # print(min_edit_distance('acress','acres'))
+            #x = min_edit_distance('acres', 'acress')
+            #print(x)
         # channel_model(x)
     if base_menu == '3':
         classification_dictionary()

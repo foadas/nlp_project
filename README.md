@@ -2,4 +2,4 @@
 
 - [x] Preprocessing
 - [x] Spell correction
-- [x] classification
+- [x] Classification
